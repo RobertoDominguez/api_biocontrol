@@ -1,0 +1,352 @@
+
+--Active
+use gamporongoCons;
+
+
+
+select rhemp.rhempNemp from rhemp
+group by rhempNemp
+
+
+
+select *
+from gbper
+order by gbperCPER desc
+
+delete from gbper where gbperCPER=422
+
+select gbcon.gbcondesc
+from gbper,gbcon
+where gbper.gbperProf=gbcon.gbconcorr and gbcon.gbconpref=7
+
+EXEC sp_help 'gbper';
+
+
+--si tiene fecha de ingreso lo ingresa al sistema
+
+--517
+DECLARE @id int
+set @id=517
+insert into gbper (gbperCPER,gbperNomb,gbperSigl,gbperTper,gbperEmpR,gbperTdid,gbperDide,gbperCOMP,gbperExci,gbperNNIT,gbperDire,
+gbperTelf,gbperDirO,gbperTelO,gbperCell,gbperNFax,gbperMail,
+gbperFreg,gbperAEco,gbperCSuc,gbperNOfi,gbperPais,gbperNCiu,gbperNBar,
+gbperFnac,gbperCODE,gbperCalf,gbperNomn,gbperApep,gbperApem,gbperApec,gbperSexo,gbperProf,gbperEciv,gbperTorg,gbperNitF,gbperNomF,
+gbperOPAI,gbperOCIU,gbperCOLE,gbperTEDU,gbperANOE,gbperCARR,gbperCODX,gbperCODY,gbperEXCP,gbperImpX,gbperImpY,
+gbperImpZ,gbperStat,gbperRide)
+values (@id,'PRUEBA DE INSERT','gamporongoCons',2,0,1,'0','0','Otro','039130026','.',
+'0','Ninguna','0','0','0','sin@mail.com',
+'2022-04-02 00:00:00.000',1,1,1,1,1,1,
+'2022-04-03 00:00:00.000','0','A','NOMBRE','PATERNO','MATERNO','',0,0,0,3,'039130026','GOBIERNO AUTONOMO MUICIPAL DE PORONGO',
+'0','0','0','0','0','0','0','0',0,0.00,0.00,
+0.00,0,255)
+
+select * from gbper order by gbperCPER desc
+
+
+--insertando a rhemp (contrato)
+
+insert into rhemp (rhempNemp,rhempFing,rhempFfin,
+rhempCode,rhempNasg,rhempNpin,rhempCbco,rhempNcta,rhempFreg,rhempCafp,rhempRafp,rhempFafp,rhempTemp,
+rhempTprd,rhempCsuc,rhempNofi,
+rhempCcos,rhempPRYC,rhempTCTO,
+rhempCGRP,rhempCprc,rhempCcrg,rhempNsal,rhempCmon,rhempSldo
+
+,rhempShor,rhempShex,rhempShno,rhempShfe,rhempShdo,rhempMhre,rhempShfa,rhempShfl,rhempShsa,rhempSdad
+,rhempRvac,rhempPorA,rhempImpA,rhempCtur,rhempCsin,rhempGsan,rhempStaE,rhempStaA,rhempStaB,rhempFret,rhempFini
+
+,rhempAnoE,rhempNhex,rhempNhno,rhempNhfe,rhempNhdo,rhempNhsa,rhempCLAL,rhempJUBI,RhempDISC,RhempTUTD,rhempStat
+,rhempNnua,rhempRide)
+values (517,'2000-02-04','2000-05-04',
+
+0,0,0,0,0,'2000-02-01',0,0,'2000-02-01',3
+,1,1,1,
+8,1,0,
+1,0,3,3,1,0
+
+,0,0,0,0,0,0,0,0,0,0
+,2,0,0,1,0,1,1,0,0,'2000-02-01','2000-02-01'
+
+,0,0,0,0,0,0,6,1,0,0,0
+,0,187)
+
+
+
+------------------------------TEST2-------------------------------------------
+insert into rhemp (rhempNemp,rhempFing,rhempFfin,
+rhempCode,rhempNasg,rhempNpin,rhempCbco,rhempNcta,rhempFreg,rhempCafp,rhempRafp,rhempFafp,rhempTemp,
+rhempTprd,rhempCsuc,rhempNofi,
+rhempCcos,rhempPRYC,rhempTCTO,
+
+rhempCGRP,rhempCprc,rhempCcrg,rhempNsal,rhempCmon,rhempSldo
+
+,rhempShor,rhempShex,rhempShno,rhempShfe,rhempShdo,rhempMhre,rhempShfa,rhempShfl,rhempShsa,rhempSdad
+,rhempRvac,rhempPorA,rhempImpA,rhempCtur,rhempCsin,rhempGsan,rhempStaE,rhempStaA,rhempStaB,rhempFret,rhempFini
+
+,rhempAnoE,rhempNhex,rhempNhno,rhempNhfe,rhempNhdo,rhempNhsa,rhempCLAL,rhempJUBI,RhempDISC,RhempTUTD,rhempStat
+,rhempNnua,rhempRide)
+values (427,'2022-05-02','2022-06-14',
+
+0,0,0,0,0,'2022-05-02',0,0,'2022-05-02',3
+,2,1,1,
+13,6,1,
+
+3,0,5,2,1,1000.000
+
+,4.1667,8.3334,1.0417,12.5001,12.5001,4.1667,8.3334,4.1667,8.3334,33.3333
+,3,0.0000,0.0000,1,0,0,1,1,0,'1900-01-01','2022-06-09'
+
+,0,0.0000,0.0000,0.0000,0.0000,0.0000,1,0,0,0,0
+,0,1074)
+
+select * from rhemp where rhempNemp=422
+
+EXEC sp_help 'rhemp';
+*/
+----------------------------------------------------------------------------------------------------------------------------------------
+GO 
+CREATE PROCEDURE insertarSucursal @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombresucursal as varchar(255)
+	set @nombresucursal=(select TOP 1 cncos.cncosdesc --cncosCcos
+		from rhemp,cncos 
+		where rhemp.rhempCcos=cncos.cncosCcos and rhemp.rhempNemp=@codigo )
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select id from PorongoGAM_Asistencia.dbo.Sucursal where nombre like '%'+@nombresucursal)
+
+	if (@existe_cod is NULL)
+	begin
+		print('insertando sucursal')
+		insert into PorongoGAM_Asistencia.dbo.Sucursal (codigo,nombre,localidad,provincia,departamento) 
+		(select TOP 1  cncos.cncosCcos,cncos.cncosdesc,'Porongo','Andres Ibañez','Santa Cruz' 
+		from rhemp,cncos 
+		where rhemp.rhempCcos=cncos.cncosCcos and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Sucursal order by id desc)
+	end
+
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+
+	insert into PorongoGAM_Asistencia.dbo.PersonaSucursal (id_persona,id_sucursal,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc insertarSucursal
+
+
+
+GO
+CREATE PROCEDURE insertarGrupo @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombreproyecto as varchar(255)
+	set @nombreproyecto=(select TOP 1 cgpry.cgpryTitl --cgpryPRYC
+		from rhemp,cgpry
+		where rhemp.rhempPRYC=cgpry.cgpryPRYC and rhemp.rhempNemp=@codigo)
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select TOP 1 id from PorongoGAM_Asistencia.dbo.Grupo where nombre like '%'+@nombreproyecto)
+
+	if (@existe_cod is NULL)
+	begin
+		print('insertando grupo')
+		insert into PorongoGAM_Asistencia.dbo.Grupo (nombre,descripcion) 
+		(select TOP 1 cgpry.cgpryTitl,cgpry.cgpryDesc
+		from rhemp,cgpry
+		where rhemp.rhempPRYC=cgpry.cgpryPRYC and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Grupo order by id desc)
+	end
+	
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+	
+	insert into PorongoGAM_Asistencia.dbo.PersonaGrupo (id_persona,id_grupo,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc insertarGrupo
+
+
+
+GO
+CREATE PROCEDURE insertarSeccion @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombreclasificacion as varchar(255)
+	set @nombreclasificacion=(select TOP 1 rhcon.rhcondesc --rhconcorr 
+	from rhcon,rhemp 
+	where rhcon.rhconcorr=rhemp.rhempCLAL and rhcon.rhconpref=41 and rhemp.rhempNemp=@codigo)
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select TOP 1 id from PorongoGAM_Asistencia.dbo.Seccion where nombre like '%'+@nombreclasificacion)
+
+	if (@existe_cod is null)
+	begin
+		print('insertando seccion')
+		insert into PorongoGAM_Asistencia.dbo.Seccion (nombre,descripcion) 
+		(select TOP 1 rhcon.rhcondesc,rhcon.rhcondesc from rhcon,rhemp 
+		where rhcon.rhconcorr=rhemp.rhempTCTO and rhcon.rhconpref=41 and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Seccion order by id desc)
+	end
+	
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+	
+	insert into PorongoGAM_Asistencia.dbo.PersonaSeccion(id_persona,id_seccion,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc insertarSeccion
+
+
+GO
+CREATE TRIGGER contratoPersonaInsert ON gamporongoCons.dbo.rhemp
+AFTER INSERT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	BEGIN TRAN 
+		BEGIN TRY
+			DECLARE @codigo INTEGER
+			SELECT @codigo = rhempNemp from inserted
+
+			DECLARE @nombres VARCHAR(255)
+			DECLARE @apellido_pat VARCHAR(255)
+			DECLARE @apellido_mat VARCHAR(255)
+			DECLARE @estado INTEGER
+			SET @estado=1 -- constante
+			DECLARE @cargo VARCHAR(255)
+			SELECT @cargo=(select rhcrg.rhcrgDesc from rhcrg,rhemp where rhcrg.rhcrgCcrg=rhemp.rhempCcrg and rhemp.rhempNemp=@codigo)
+			DECLARE @localidad VARCHAR(255)
+			SELECT @localidad = '' --constante
+			DECLARE @cod_ciudad INTEGER
+
+			DECLARE @dide VARCHAR(255)
+			DECLARE @comp VARCHAR(255)
+			DECLARE @exci VARCHAR(255)
+
+			DECLARE @fecha_nacimiento DATETIME
+
+			DECLARE @cod_prof INTEGER
+			Declare @conditionSexo INT
+			DECLARE @conditioEstadoCivil INT
+			DECLARE @telefono VARCHAR(40)
+			DECLARE @email VARCHAR(255)
+			DECLARE @direccion VARCHAR(600)
+
+			DECLARE cursorPersona CURSOR FOR SELECT gbperNomn,gbperApep,gbperApem,gbperNCiu,gbperDide,gbperCOMP,gbperExci,gbperFnac,gbperProf,gbperSexo,gbperEciv,gbperTelf,gbperMail,gbperDire from gamporongoCons.dbo.gbper where gbperCPER=@codigo
+			OPEN cursorPersona
+			FETCH NEXT FROM cursorPersona INTO @nombres,@apellido_pat,@apellido_mat,@cod_ciudad,@dide,@comp,@exci,@fecha_nacimiento,@cod_prof,@conditionSexo,@conditioEstadoCivil,@telefono,@email,@direccion
+			CLOSE  cursorPersona
+			DEALLOCATE cursorPersona
+
+
+			DECLARE @apellidos VARCHAR(255) --suma de pat+mat
+			SET @apellidos=(@apellido_pat+' '+@apellido_mat)
+
+			DECLARE @provincia VARCHAR(255)
+			SELECT @provincia =	gbcon.gbcondesc
+									from gamporongoCons.dbo.gbcon
+									where @cod_ciudad=gbcon.gbconcorr and gbcon.gbconpref=27
+
+			DECLARE @departamento VARCHAR(255)
+			SELECT @departamento =	gbcon.gbcondesc
+									from gamporongoCons.dbo.gbcon
+									where @cod_ciudad=gbcon.gbconcorr and gbcon.gbconpref=27
+
+			DECLARE @ci VARCHAR(255)
+			SET @ci = @dide+' - '+@comp+' '+@exci
+
+	
+			DECLARE @profesion VARCHAR(255)
+			SELECT @profesion = gbcon.gbcondesc
+								from gamporongoCons.dbo.gbcon
+								where @cod_prof=gbcon.gbconcorr and gbcon.gbconpref=7
+
+			DECLARE @sexo VARCHAR(25)
+	
+			IF (@conditionSexo = 1 )
+			BEGIN
+				SET @sexo='MASCULINO'
+			END
+			ELSE
+			BEGIN
+				SET @sexo='FEMENINO'
+			END
+	
+
+			DECLARE @estado_civil VARCHAR(255)
+
+			IF (@conditioEstadoCivil = 1 )
+			BEGIN
+				SET @estado_civil='CASADO'
+			END
+			ELSE
+			BEGIN
+				SET @estado_civil='SOLTERO'
+			END
+
+			insert into PorongoGAM_Asistencia.dbo.Persona 
+			(codigo,nombres,apellidos,estado,cargo,localidad,provincia,departamento,ci,fecha_nacimiento,
+			profesion,sexo,estado_civil,telefono,email,direccion) values 
+			(@dide,@nombres,@apellidos,@estado,@cargo,@localidad,@provincia,@departamento,@ci,@fecha_nacimiento,
+			@profesion,@sexo,@estado_civil,@telefono,@email,@direccion)
+
+	
+	
+			--Insertar PersonaContrato
+			DECLARE @id INTEGER
+			SELECT @id=max(id) from PorongoGAM_Asistencia.dbo.Persona
+
+			DECLARE @fecha_ingreso DATETIME
+			SELECT @fecha_ingreso= rhempFing from inserted
+
+			DECLARE @fecha_salida DATETIME
+			SELECT @fecha_salida = rhempFfin from inserted
+			if (YEAR(@fecha_salida)=1900)
+			begin
+				set @fecha_salida=null
+			end
+
+			DECLARE @descripcion VARCHAR(255)
+			SELECT @descripcion = rhcon.rhcondesc from rhemp,rhcon where rhcon.rhconcorr=rhemp.rhempTCTO and rhconpref=40 and rhemp.rhempNemp=@codigo
+
+			insert into PorongoGAM_Asistencia.dbo.PersonaContrato (id_persona,fecha_ingreso,fecha_salida,descripcion) values (@id,@fecha_ingreso,@fecha_salida,@descripcion)
+	
+	
+			--insertar sucursal
+			EXECUTE dbo.insertarSucursal @id,@codigo
+
+			--insertar grupo
+			EXECUTE dbo.insertarGrupo @id,@codigo
+
+			--insertar seccion
+			EXECUTE dbo.insertarSeccion @id,@codigo
+
+			COMMIT TRAN 
+			print('INSERTADO CON EXITO')
+		END TRY
+		BEGIN CATCH
+			ROLLBACK TRAN 
+			print('ERROR, ROLLBACK')
+		END CATCH
+
+END
+
+
+--DROP TRIGGER contratoPersonaInsert
+
+/*
+select * from gbper order by gbperCPER desc
+delete from gbper where gbperCPER=517
+
+select * from rhemp where rhempNemp=517
+delete from rhemp where rhempNemp=517
+*/
+
+

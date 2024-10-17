@@ -1,0 +1,83 @@
+
+
+use gamporongoCons
+
+drop table DetPlanillaConsultores;
+drop table PlanillaConsultores;
+
+CREATE TABLE PlanillaConsultores(
+	id INT not null primary key identity(1,1),
+	nro INT not null,
+	cpry INT not null,
+	nombreProyecto varchar(255) not null,
+	year INT not null,
+	month INT not null,
+	fecha_creacion date
+);
+
+CREATE TABLE DetPlanillaConsultores(
+	id INT not null primary key identity(1,1),
+	id_planilla_consultores INTEGER,
+
+	Nro int not null,
+	NombreCompleto varchar(255),
+	Ocupacion varchar(255),
+	CI varchar(255),
+	Expedido varchar(12),
+	Sexo varchar(12),
+	FechaIngreso date,
+	FechaSalida date,
+	HaberBasico varchar(255),
+	DiasTrabajados varchar(255),
+	SueldoBasico float,
+	BonoAntiguedad float,
+	OtrosIngresos float,
+	TotalGanado float,
+	AFP float,
+	NacSolidario float,
+	IVA float,
+	OtrosEgresos float,
+	TotalEgresos float,
+	LiquidoPagable float,
+	DiasTrabajadosBC int,
+	NroCta varchar(255),
+	SaldoCredFis float,
+	NivelSalarial float,
+	CPER INTEGER
+
+	FOREIGN KEY (id_planilla_consultores) references PlanillaConsultores(id) on update cascade on delete cascade
+);
+
+drop proc guardarPlanilla
+
+GO
+CREATE PROCEDURE guardarPlanilla
+AS
+BEGIN
+
+	SET NOCOUNT ON;
+
+	DECLARE @CPRY as int 
+	SET @CPRY=(SELECT TOP 1 cpry  FROM phpTriggerPlanilla order by id desc)
+	DECLARE @MONTH as int
+	SELECT @MONTH=(SELECT TOP 1 month  FROM phpTriggerPlanilla order by id desc)
+	DECLARE @YEAR as int
+	SELECT @YEAR=(SELECT TOP 1 year  FROM phpTriggerPlanilla order by id desc)
+
+	DECLARE @nro as INTEGER
+	SET @nro=(SELECT COUNT(*) from PlanillaConsultores where cpry=@CPRY AND month=@MONTH AND year=@YEAR)+1
+
+	INSERT INTO PlanillaConsultores (cpry,nro,nombreProyecto,year,month,fecha_creacion)
+	SELECT TOP 1 cpry,@nro,nombrePlanilla,year,month,GETDATE() FROM phpTriggerPlanilla order by id desc;
+
+	DECLARE @id_planilla_consultores INT
+	SET @id_planilla_consultores=(SELECT TOP 1 id FROM PlanillaConsultores order by id desc)
+
+	INSERT INTO DetPlanillaConsultores (id_planilla_consultores,Nro,NombreCompleto,Ocupacion,CI,Expedido,Sexo,FechaIngreso,FechaSalida,
+	HaberBasico,DiasTrabajados,SueldoBasico,BonoAntiguedad,OtrosIngresos,TotalGanado,AFP,NacSolidario,IVA,OtrosEgresos,TotalEgresos,
+	LiquidoPagable,DiasTrabajadosBC,NroCta,SaldoCredFis,NivelSalarial,CPER)
+	SELECT @id_planilla_consultores,* from PlanillasRoberto;
+
+	SELECT @nro
+END
+

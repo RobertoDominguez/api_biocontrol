@@ -1,0 +1,43 @@
+use porongogam_asistencia
+
+select * from sucursal order by id desc
+
+delete from personasucursal where id in(
+
+select personasucursal.id from personasucursal,persona
+where personasucursal.id_persona=persona.id
+and persona.codigo='0'
+)
+
+
+select * from grupo order by id desc
+
+delete from personagrupo where id in(
+
+select PersonaGrupo.id from PersonaGrupo,persona
+where PersonaGrupo.id_persona=persona.id
+and persona.codigo='0'
+)
+
+select * from seccion order by id desc
+
+delete from personaseccion where id in(
+
+select personaseccion.id from PersonaSeccion,persona
+where PersonaSeccion.id_persona=persona.id
+and persona.codigo='0'
+)
+
+delete from Asistencia where id_persona in (
+select id from persona where codigo='0'
+)
+
+
+delete from Permiso where id_persona in (
+select id from persona where codigo='0'
+)
+
+
+select * from persona where codigo='0'
+
+delete from persona where codigo='0'

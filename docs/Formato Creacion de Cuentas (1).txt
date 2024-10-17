@@ -1,0 +1,8 @@
+El formatao tiene que llevar 11 separaciones y en cada separacion una pequeña raya  ( | ) donde indique lo siguiente:
+Ap Paterno|Ap Materno|1ºNombre|2ºNombre|ci con procedencia|Domicilio|F.nacim|Monto|Ap.Casada|telf|Sexo
+Ejemplo:
+
+0|0
+HEREDIA|SALVATIERRA|BISMAR||3945534SC|BARRIO EL GALLITO CALLE 8 N9|13/5/1988|2939.15|||M
+PEREZ|ARANCIBIA|ERLAN||3888050SC|AV. ALEMANA 8VO ANILLO UV194|12/4/1974|3069.24|||M
+SOLIZ|CHAVEZ|TERESA||5328038SC|B/CHACARILLA CALLE TAHUICHI 3605|25/9/1982|2268.58|||M

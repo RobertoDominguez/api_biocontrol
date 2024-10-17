@@ -1,0 +1,167 @@
+use gamporongo
+
+
+
+	SELECT gbperCPER,gbper.gbperNomb,rhcrg.rhcrgDesc,
+	gbper.gbperDide,gbper.gbperExci,gbper.gbperSexo,rhemp.rhempFing,rhemp.rhempFfin,rhemp.rhempSldo,rhempNcta,rhemp.rhempFret
+    FROM gbper,rhemp,rhcrg
+	WHERE gbper.gbperCPER=rhemp.rhempNemp AND rhcrg.rhcrgCcrg=rhemp.rhempCcrg
+	AND rhemp.rhempPRYC=4
+	AND rhemp.rhempStaE=1
+	AND ( YEAR(rhemp.rhempFing)<2022 OR (YEAR(rhemp.rhempFing)=2022 AND MONTH(rhemp.rhempFing)<=10) )
+	AND gbperDide='3218556'
+
+--'Bazan Gutierrez Maria Stir' 2779.89   2780
+
+--EXEC dbo.BuscaValorEnBBDD '2779.89'
+
+--8700
+
+DECLARE @SearchStr float = 8700
+ 
+DECLARE @Results TABLE(ColumnName nvarchar(370), ColumnValue nvarchar(3630))
+ 
+SET NOCOUNT ON
+ 
+DECLARE @TableName nvarchar(256), @ColumnName nvarchar(128), @SearchStr2 nvarchar(110)
+SET  @TableName = ''
+SET @SearchStr2 = QUOTENAME('' + @SearchStr + '','''')
+ 
+WHILE @TableName IS NOT NULL
+BEGIN
+    SET @ColumnName = ''
+    SET @TableName =
+    (
+        SELECT MIN(QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME))
+        FROM    INFORMATION_SCHEMA.TABLES
+        WHERE       TABLE_TYPE = 'BASE TABLE'
+            AND QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) > @TableName
+            AND OBJECTPROPERTY(
+                    OBJECT_ID(
+                        QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME)
+                         ), 'IsMSShipped'
+                           ) = 0
+    )
+
+	
+ 
+    WHILE (@TableName IS NOT NULL) AND (@ColumnName IS NOT NULL)
+    BEGIN
+        SET @ColumnName =
+        (
+            SELECT MIN(QUOTENAME(COLUMN_NAME))
+            FROM    INFORMATION_SCHEMA.COLUMNS
+            WHERE       TABLE_SCHEMA    = PARSENAME(@TableName, 2)
+                AND TABLE_NAME  = PARSENAME(@TableName, 1)
+                AND DATA_TYPE IN ('int', 'bigint', 'decimal', 'float')
+                AND QUOTENAME(COLUMN_NAME) > @ColumnName
+        )
+ 
+        IF @ColumnName IS NOT NULL
+        BEGIN
+            INSERT INTO @Results
+            EXEC
+            (
+                'SELECT ''' + @TableName + '.' + @ColumnName + ''', LEFT(' + @ColumnName + ', 3630)
+                FROM ' + @TableName + ' (NOLOCK) ' +
+                ' WHERE ' + @ColumnName + ' = ' + 'cast('+@SearchStr2 +' as float)'
+            )
+        END
+		
+    END
+END
+ 
+SELECT ColumnName, ColumnValue FROM @Results
+
+
+select sum(rhivaImpt) from rhiva
+where rhivaNemp=74
+and rhivaglos not like '%Saldo anterior%'
+and rhivaglos not like '%actualizaci%'
+
+select * from rhiva
+where rhivaNemp=74
+and rhivaglos not like '%Saldo anterior%'
+and rhivaglos not like '%actualizac%'
+
+
+--11272.28
+
+11338.64
+
+select * from rhiva
+group by rhivanemp
+having sum(rhivaImpt)>0
+
+
+select * from gbper where gbperDide='1531876'
+
+
+--bazan gutierrez nemp=23
+
+select * from gbper where gbperNomb like '%Bazan Gutierrez%'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE PROC BuscaValorEnBBDD
+(
+@StrValorBusqueda nvarchar(100)
+)
+AS
+BEGIN
+
+CREATE TABLE #Resultado (NombreColumna nvarchar(370), ValorColumna nvarchar(3630))
+SET NOCOUNT ON
+
+DECLARE @NombreTabla nvarchar(256),
+@NombreColumna nvarchar(128),
+@StrValorBusqueda2 nvarchar(110)
+
+SET  @NombreTabla = ''
+SET @StrValorBusqueda2 = QUOTENAME('%' + @StrValorBusqueda + '%','''')
+
+WHILE @NombreTabla IS NOT NULL
+     BEGIN
+     SET @NombreColumna = ''
+     SET @NombreTabla =
+     (SELECT MIN(QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME))
+     FROM INFORMATION_SCHEMA.TABLES
+     WHERE TABLE_TYPE = 'BASE TABLE'
+     AND QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) > @NombreTabla
+     AND OBJECTPROPERTY(
+     OBJECT_ID(QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME)), 'IsMSShipped') = 0)
+
+     WHILE (@NombreTabla IS NOT NULL) AND (@NombreColumna IS NOT NULL)
+         BEGIN
+         SET @NombreColumna =
+         (SELECT MIN(QUOTENAME(COLUMN_NAME))
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = PARSENAME(@NombreTabla, 2)
+         AND TABLE_NAME = PARSENAME(@NombreTabla, 1)
+         AND DATA_TYPE IN ('char', 'varchar', 'nchar', 'nvarchar')
+         AND QUOTENAME(COLUMN_NAME) > @NombreColumna)
+
+         IF @NombreColumna IS NOT NULL
+              BEGIN
+              INSERT INTO #Resultado
+              EXEC
+              ('SELECT ''' + @NombreTabla + '.' + @NombreColumna + ''', LEFT(' + @NombreColumna + ', 3630)
+              FROM ' + @NombreTabla + ' (NOLOCK) ' + ' WHERE ' + @NombreColumna + ' LIKE ' + @StrValorBusqueda2)
+              END 
+         END
+     END
+     SELECT NombreColumna, ValorColumna FROM #Resultado
+END

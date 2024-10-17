@@ -1,0 +1,309 @@
+use gamporongoCons
+
+
+GO 
+CREATE PROCEDURE actualizarSucursal @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombresucursal as varchar(255)
+	set @nombresucursal=(select TOP 1 cncos.cncosdesc --cncosCcos
+		from rhemp,cncos 
+		where rhemp.rhempCcos=cncos.cncosCcos and rhemp.rhempNemp=@codigo )
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select id from PorongoGAM_Asistencia.dbo.Sucursal where nombre like '%'+@nombresucursal)
+
+	if (@existe_cod is NULL)
+	begin
+		print('insertando sucursal')
+		insert into PorongoGAM_Asistencia.dbo.Sucursal (codigo,nombre,localidad,provincia,departamento) 
+		(select TOP 1  cncos.cncosCcos,cncos.cncosdesc,'Porongo','Andres Ibañez','Santa Cruz' 
+		from rhemp,cncos 
+		where rhemp.rhempCcos=cncos.cncosCcos and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Sucursal order by id desc)
+	end
+
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+
+	delete from PorongoGAM_Asistencia.dbo.PersonaSucursal where id_persona=@id
+	insert into PorongoGAM_Asistencia.dbo.PersonaSucursal (id_persona,id_sucursal,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc actualizarSucursal
+
+
+
+GO
+CREATE PROCEDURE actualizarGrupo @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombreproyecto as varchar(255)
+	set @nombreproyecto=(select TOP 1 cgpry.cgpryTitl --cgpryPRYC
+		from rhemp,cgpry
+		where rhemp.rhempPRYC=cgpry.cgpryPRYC and rhemp.rhempNemp=@codigo)
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select TOP 1 id from PorongoGAM_Asistencia.dbo.Grupo where nombre like '%'+@nombreproyecto)
+
+	if (@existe_cod is NULL)
+	begin
+		print('insertando grupo')
+		insert into PorongoGAM_Asistencia.dbo.Grupo (nombre,descripcion) 
+		(select TOP 1 cgpry.cgpryTitl,cgpry.cgpryDesc
+		from rhemp,cgpry
+		where rhemp.rhempPRYC=cgpry.cgpryPRYC and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Grupo order by id desc)
+	end
+	
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+	
+	delete from PorongoGAM_Asistencia.dbo.PersonaGrupo where id_persona=@id
+	insert into PorongoGAM_Asistencia.dbo.PersonaGrupo(id_persona,id_grupo,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc actualizarGrupo
+
+
+
+GO
+CREATE PROCEDURE actualizarSeccion @id as integer,@codigo as integer
+AS
+BEGIN
+
+	DECLARE @nombreclasificacion as varchar(255)
+	set @nombreclasificacion=(select TOP 1 rhcon.rhcondesc --rhconcorr 
+	from rhcon,rhemp 
+	where rhcon.rhconcorr=rhemp.rhempCLAL and rhcon.rhconpref=41 and rhemp.rhempNemp=@codigo)
+
+	DECLARE @existe_cod as integer
+	set @existe_cod=(select TOP 1 id from PorongoGAM_Asistencia.dbo.Seccion where nombre like '%'+@nombreclasificacion)
+
+	if (@existe_cod is null)
+	begin
+		print('insertando seccion')
+		insert into PorongoGAM_Asistencia.dbo.Seccion (nombre,descripcion) 
+		(select TOP 1 rhcon.rhcondesc,rhcon.rhcondesc from rhcon,rhemp 
+		where rhcon.rhconcorr=rhemp.rhempTCTO and rhcon.rhconpref=41 and rhemp.rhempNemp=@codigo)
+
+		SET @existe_cod=(select TOP 1  id from PorongoGAM_Asistencia.dbo.Seccion order by id desc)
+	end
+	
+	DECLARE @fecha_ingreso as DATE --AQUI VA fin o fing?, estoy tomando fing como esta en el documento
+	SET @fecha_ingreso=(select TOP 1 rhemp.rhempFing
+		from rhemp where rhemp.rhempNemp=@codigo)
+	
+	delete from PorongoGAM_Asistencia.dbo.PersonaSeccion where id_persona=@id
+	insert into PorongoGAM_Asistencia.dbo.PersonaSeccion(id_persona,id_seccion,fecha_inicio) values (@id,@existe_cod,@fecha_ingreso)
+END
+--Drop proc actualizarSeccion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+CREATE TRIGGER contratoPersonaUpdate ON gamporongoCons.dbo.rhemp
+AFTER UPDATE,INSERT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	BEGIN TRAN 
+		BEGIN TRY
+			
+			DECLARE @nEmp INTEGER
+			SET @nEmp = ( select top 1 rhempNemp from inserted)
+
+			if (@nEmp is not null)
+			begin
+
+				DECLARE @ciCod varchar(255)
+				SELECT @ciCod = gbperDide from gbper where gbperCPER=@nEmp
+
+				--------------------------------ACTUALIZANDO PERSONA----------------------------------
+
+				DECLARE @nombres VARCHAR(255)
+				DECLARE @apellido_pat VARCHAR(255)
+				DECLARE @apellido_mat VARCHAR(255)
+				DECLARE @estado INTEGER
+			
+				SET @estado=(select rhempStaE from rhemp,rhcon where rhemp.rhempStaE=rhcon.rhconcorr and rhcon.rhconpref=1 and rhempNemp=@nEmp) -- constante
+				if (@estado=2) begin set @estado=0 end --Inactivo es 2 para Active y 0 para biocontrol
+				if (@estado is null) begin set @estado=1 end
+
+				DECLARE @cargo VARCHAR(255)
+				SELECT @cargo=(select rhcrg.rhcrgDesc from rhcrg,rhemp where rhcrg.rhcrgCcrg=rhemp.rhempCcrg and rhemp.rhempNemp=@nemp)
+				DECLARE @localidad VARCHAR(255)
+				SELECT @localidad = '' --constante
+				DECLARE @cod_ciudad INTEGER
+
+				DECLARE @dide VARCHAR(255)
+				DECLARE @comp VARCHAR(255)
+				DECLARE @exci VARCHAR(255)
+
+				DECLARE @fecha_nacimiento DATETIME
+
+				DECLARE @cod_prof INTEGER
+				Declare @conditionSexo INT
+				DECLARE @conditioEstadoCivil INT
+				DECLARE @telefono VARCHAR(40)
+				DECLARE @email VARCHAR(255)
+				DECLARE @direccion VARCHAR(600)
+
+				DECLARE cursorPersona2 CURSOR FOR SELECT gbperNomn,gbperApep,gbperApem,gbperNCiu,gbperDide,gbperCOMP,gbperExci,gbperFnac,gbperProf,gbperSexo,gbperEciv,gbperTelf,gbperMail,gbperDire
+				from gamporongoCons.dbo.gbper where gbperCPER=@nemp
+				OPEN cursorPersona2
+				FETCH NEXT FROM cursorPersona2 INTO @nombres,@apellido_pat,@apellido_mat,@cod_ciudad,@dide,@comp,@exci,@fecha_nacimiento,@cod_prof,@conditionSexo,@conditioEstadoCivil,@telefono,@email,@direccion
+				CLOSE  cursorPersona2
+				DEALLOCATE cursorPersona2
+
+
+				DECLARE @apellidos VARCHAR(255) --suma de pat+mat
+				SET @apellidos=(@apellido_pat+' '+@apellido_mat)
+
+				DECLARE @provincia VARCHAR(255)
+				SELECT @provincia =	gbcon.gbcondesc
+										from gamporongoCons.dbo.gbcon
+										where @cod_ciudad=gbcon.gbconcorr and gbcon.gbconpref=27
+
+				DECLARE @departamento VARCHAR(255)
+				SELECT @departamento =	gbcon.gbcondesc
+										from gamporongoCons.dbo.gbcon
+										where @cod_ciudad=gbcon.gbconcorr and gbcon.gbconpref=27
+
+				DECLARE @ci VARCHAR(255)
+				SET @ci = @dide+' - '+@comp+' '+@exci
+
+	
+				DECLARE @profesion VARCHAR(255)
+				SELECT @profesion = gbcon.gbcondesc
+									from gamporongoCons.dbo.gbcon
+									where @cod_prof=gbcon.gbconcorr and gbcon.gbconpref=7
+
+				DECLARE @sexo VARCHAR(25)
+	
+				IF (@conditionSexo = 1 )
+				BEGIN
+					SET @sexo='MASCULINO'
+				END
+				ELSE
+				BEGIN
+					SET @sexo='FEMENINO'
+				END
+	
+
+				DECLARE @estado_civil VARCHAR(255)
+
+				IF (@conditioEstadoCivil = 1 )
+				BEGIN
+					SET @estado_civil='CASADO'
+				END
+				ELSE
+				BEGIN
+					SET @estado_civil='SOLTERO'
+				END
+
+
+				declare @existe_persona as integer
+				set @existe_persona=(select top 1 id from PorongoGAM_Asistencia.dbo.Persona where codigo=@dide)
+
+				if (@existe_persona is null)
+				begin
+				print('persona insertada')
+				insert into PorongoGAM_Asistencia.dbo.Persona 
+					(codigo,nombres,apellidos,estado,cargo,localidad,provincia,departamento,ci,fecha_nacimiento,
+					profesion,sexo,estado_civil,telefono,email,direccion) values 
+					(@dide,@nombres,@apellidos,@estado,@cargo,@localidad,@provincia,@departamento,@ci,@fecha_nacimiento,
+					@profesion,@sexo,@estado_civil,@telefono,@email,@direccion)
+				end
+				else
+				begin
+					print('persona actualizada')
+					update PorongoGAM_Asistencia.dbo.Persona set
+					nombres=@nombres,apellidos=@apellidos,estado=@estado,cargo=@cargo,localidad=@localidad,
+					provincia=@provincia,departamento=@departamento,ci=@ci,fecha_nacimiento=@fecha_nacimiento,
+					profesion=@profesion,sexo=@sexo,estado_civil=@estado_civil,telefono=@telefono,email=@email,direccion=@direccion
+					where codigo=@dide
+				end
+				----------------------------Actualizar PersonaContrato-----------------------------------------
+				DECLARE @id INTEGER
+				set @id=(select top 1 id from PorongoGAM_Asistencia.dbo.Persona where codigo=@ciCod)
+
+				DECLARE @fecha_ingreso DATETIME
+				SELECT @fecha_ingreso= rhempFing from inserted
+
+				DECLARE @fecha_salida DATETIME
+				SELECT @fecha_salida = rhempFfin from inserted
+				if (YEAR(@fecha_salida)=1900)
+				begin
+					set @fecha_salida=null
+				end
+
+				DECLARE @descripcion VARCHAR(255)
+				SELECT @descripcion = rhcon.rhcondesc from rhemp,rhcon 
+				where rhcon.rhconcorr=rhemp.rhempTCTO and rhconpref=40 and rhemp.rhempNemp=@nEmp
+
+				if (@existe_persona is null)
+				begin
+					insert into PorongoGAM_Asistencia.dbo.PersonaContrato (id_persona,fecha_ingreso,fecha_salida,descripcion) 
+					values (@id,@fecha_ingreso,@fecha_salida,@descripcion)
+				end
+				else
+				begin
+					update PorongoGAM_Asistencia.dbo.PersonaContrato 
+					set fecha_ingreso=@fecha_ingreso,fecha_salida=@fecha_salida,descripcion=@descripcion
+					where id_persona=@id
+				end
+
+				--actualizar sucursal
+				EXECUTE dbo.actualizarSucursal @id,@nEmp
+
+				-- actualizar grupo
+				EXECUTE dbo.actualizarGrupo @id,@nEmp
+
+				-- actualizar seccion
+				EXECUTE dbo.actualizarSeccion @id,@nEmp
+
+			end
+		COMMIT TRAN
+		print('actualizado con exito')
+	END TRY
+	BEGIN CATCH
+		ROLLBACK TRAN
+		print('error al actualizar')
+	END CATCH
+END
+
+-- drop trigger contratoPersonaUpdate
+--DROP TRIGGER contratoPersonaInsert
+
+/*
+
+select * from gbper
+where gbperCPER=517
+
+select * from rhemp 
+where rhempNemp=517
+
+delete from rhemp 
+where rhempNemp=517
+
+*/
+
+update rhemp set rhempCLAL=4 where rhempNemp=427
+update rhemp set rhempCLAL=5 where rhempNemp=427
